@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
+import { useNavigate, Link } from "react-router-dom";
 const HRDashboard = () => {
   const [leavePolicies, setLeavePolicies] = useState([]);
 
@@ -9,7 +9,7 @@ const HRDashboard = () => {
     const fetchLeavePolicies = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/leave-policies", {
+        const response = await axios.get("http://localhost:5001/api/leave-policies", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLeavePolicies(response.data);
@@ -36,7 +36,7 @@ const HRDashboard = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post("http://localhost:5000/api/leave-policies", formData, {
+      const response = await axios.post("http://localhost:5001/api/leave-policies", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeavePolicies([...leavePolicies, response.data.leavePolicy]);
@@ -51,7 +51,27 @@ const HRDashboard = () => {
   return (
     <div>
       <h2>HR Dashboard</h2>
-  
+      {/* Logout Button */}
+      <button
+        onClick={() => {
+          localStorage.removeItem("token");
+          window.location.href = "/";
+        }}
+        style={{ marginBottom: "1rem" }}
+      >
+        Logout
+      </button>
+      
+      {/* Link to Create a New User */}
+      <p style={{ marginTop: "1rem" }}>
+        To create a new user,{" "}
+        <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
+          click here
+        </Link>
+        .
+      </p>
+
+
       {/* Form to Create a New Leave Policy */}
       <h3>Create Leave Policy</h3>
       <form onSubmit={handleSubmit}>
@@ -105,6 +125,7 @@ const HRDashboard = () => {
                 <strong>Carryover Allowed:</strong> {policy.carryoverAllowed ? "Yes" : "No"}
               </p>
             </li>
+          
           ))}
         </ul>
       )}

@@ -33,7 +33,7 @@ const EmployeeDashboard = () => {
 
       // Send PTO request to the backend
       const response = await axios.post(
-        "http://localhost:5000/pto-requests",
+        "http://localhost:5001/pto-requests",
         {
           userId,
           startDate: formData.startDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
@@ -56,7 +56,7 @@ const EmployeeDashboard = () => {
     const fetchMyPtoRequests = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/pto-requests/my-requests", {
+        const response = await axios.get("http://localhost:5001/pto-requests/my-requests", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPtoRequests(response.data);
@@ -85,7 +85,7 @@ const EmployeeDashboard = () => {
       const token = localStorage.getItem("token");
 
       // Send a DELETE request to the backend
-      await axios.delete(`http://localhost:5000/pto-requests/${requestId}`, {
+      await axios.delete(`http://localhost:5001/pto-requests/${requestId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -11,7 +11,7 @@ const Login = () => {
     e.preventDefault();
     try {
       // Send login request to the backend
-      const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+      const res = await axios.post("http://localhost:5001/api/auth/login", { email, password });
 
       // Log the response for debugging
       console.log(res.data);
@@ -58,14 +58,7 @@ const Login = () => {
         <button type="submit">Login</button>
       </form>
 
-      {/* Register Button */}
-      <p style={{ marginTop: "1rem" }}>
-        Don't have an account?{" "}
-        <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
-          Register here
-        </Link>
-        .
-      </p>
+      
     </div>
   );
 };

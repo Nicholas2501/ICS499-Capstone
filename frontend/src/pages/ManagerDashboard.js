@@ -8,7 +8,7 @@ const ManagerDashboard = () => {
     const fetchPendingRequests = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/pto-requests/pending", {
+        const response = await axios.get("http://localhost:5001/pto-requests/pending", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPendingRequests(response.data);
@@ -27,7 +27,7 @@ const ManagerDashboard = () => {
 
       // Send a PATCH request to update the status
       const response = await axios.patch(
-        `http://localhost:5000/pto-requests/${requestId}`,
+        `http://localhost:5001/pto-requests/${requestId}`,
         { status: action }, // Set status to "Approved" or "Denied"
         {
           headers: { Authorization: `Bearer ${token}` },

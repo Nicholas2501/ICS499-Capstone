@@ -19,7 +19,7 @@ const Register = () => {
     e.preventDefault();
     try {
       // Send registration request to the backend
-      await axios.post("http://localhost:5000/api/auth/register", formData);
+      await axios.post("http://localhost:5001/api/auth/register", formData);
 
       // Redirect to login page after successful registration
       navigate("/");

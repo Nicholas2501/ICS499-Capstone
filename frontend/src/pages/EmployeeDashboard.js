@@ -2,52 +2,39 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { differenceInCalendarDays } from "date-fns"; // For date calculations
 import { useNavigate } from "react-router-dom";
 
 const EmployeeDashboard = () => {
-  
   const navigate = useNavigate();
+
   // State for submitting a new PTO request
   const [formData, setFormData] = useState({
     startDate: new Date(),
     endDate: new Date(),
     leaveType: "Vacation",
+    daysRequested: 0, // Add a field for days requested
   });
 
-  
   // State for storing the employee's past PTO requests
   const [ptoRequests, setPtoRequests] = useState([]);
 
+  // State for error messages
+  const [errorMessage, setErrorMessage] = useState("");
+
   // Function to handle form input changes
   const handleChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
-  };
+    if (name === "startDate" || name === "endDate") {
+      // Recalculate daysRequested when dates change
+      const updatedFormData = { ...formData, [name]: value };
+      const daysRequested =
+        name === "endDate" && value
+          ? differenceInCalendarDays(value, updatedFormData.startDate) + 1 // Include both start and end dates
+          : formData.daysRequested;
 
-  // Function to submit a new PTO request
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decode JWT to get userId
-      const userId = decodedToken.id;
-
-      // Send PTO request to the backend
-      const response = await axios.post(
-        "http://localhost:5001/pto-requests",
-        {
-          userId,
-          startDate: formData.startDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-          endDate: formData.endDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-          leaveType: formData.leaveType,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      alert(response.data.message); // Show success message
-    } catch (error) {
-      console.error(error.response?.data?.message || "An error occurred");
+      setFormData({ ...updatedFormData, daysRequested });
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
   };
 
@@ -68,7 +55,44 @@ const EmployeeDashboard = () => {
     fetchMyPtoRequests();
   }, []);
 
-  
+  // Function to submit a new PTO request
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage(""); // Clear any previous error message
+    try {
+      const token = localStorage.getItem("token");
+      const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decode JWT to get userId
+      const userId = decodedToken.id;
+
+      // Send PTO request to the backend
+      const response = await axios.post(
+        "http://localhost:5001/pto-requests",
+        {
+          userId,
+          startDate: formData.startDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+          endDate: formData.endDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+          leaveType: formData.leaveType,
+          daysRequested: formData.daysRequested, // Include daysRequested in the request
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert(response.data.message); // Show success message
+    } catch (error) {
+      // Log the error for debugging
+      console.error("Error submitting PTO request:", error.response?.data?.message || error.message);
+
+      // Display the error message in the UI
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrorMessage(error.response.data.message); // Set the error message
+      } else {
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      }
+    }
+  };
+
   // Function to handle logout
   const handleLogout = () => {
     // Clear the JWT token from localStorage
@@ -77,8 +101,7 @@ const EmployeeDashboard = () => {
     // Redirect to the login page
     navigate("/");
   };
-  
-  
+
   // Function to handle deleting a PTO request
   const handleDelete = async (requestId) => {
     try {
@@ -99,15 +122,13 @@ const EmployeeDashboard = () => {
     }
   };
 
-
-  
-  
   return (
     <div>
       <h2>Employee Dashboard</h2>
       <button onClick={handleLogout} style={{ marginBottom: "1rem" }}>
         Logout
       </button>
+
       {/* Section for Submitting New PTO Requests */}
       <h3>Submit a PTO Request</h3>
       <form onSubmit={handleSubmit}>
@@ -117,6 +138,9 @@ const EmployeeDashboard = () => {
             selected={formData.startDate}
             onChange={(date) => handleChange("startDate", date)}
             dateFormat="yyyy-MM-dd"
+            selectsStart
+            startDate={formData.startDate}
+            endDate={formData.endDate}
           />
         </label>
         <label>
@@ -125,8 +149,15 @@ const EmployeeDashboard = () => {
             selected={formData.endDate}
             onChange={(date) => handleChange("endDate", date)}
             dateFormat="yyyy-MM-dd"
+            selectsEnd
+            startDate={formData.startDate}
+            endDate={formData.endDate}
+            minDate={formData.startDate}
           />
         </label>
+        <p>
+          Days Requested: <strong>{formData.daysRequested}</strong>
+        </p>
         <label>
           Leave Type:
           <select
@@ -139,6 +170,7 @@ const EmployeeDashboard = () => {
             <option value="Personal Leave">Personal Leave</option>
           </select>
         </label>
+        {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
         <button type="submit">Submit Request</button>
       </form>
 

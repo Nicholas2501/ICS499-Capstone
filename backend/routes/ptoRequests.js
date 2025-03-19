@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { PTORequest, User } = require("../models");
+const { PTORequest, User, LeavePolicy } = require("../models");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const { startOfDay, endOfDay, differenceInCalendarDays } = require("date-fns"); // For date calculations
+const Op = require("sequelize").Op; // Sequelize operators
+
 dotenv.config();
 
 // Middleware to authenticate JWT token
@@ -37,12 +40,57 @@ router.post("/", authenticateToken, async (req, res) => {
       return res.status(400).json({ message: "Start date cannot be after end date" });
     }
 
+    // Calculate days requested (inclusive of both start and end dates)
+    const daysRequested = differenceInCalendarDays(parsedEndDate, parsedStartDate) + 1;
+
+    // Fetch the user's role
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Fetch the leave policy for the user's role and leave type
+    const policy = await LeavePolicy.findOne({
+      where: { leaveType, role: user.role }, // Ensure policy is role-specific
+    });
+    if (!policy) {
+      return res.status(404).json({ message: "Leave policy not found" });
+    }
+
+    // Calculate total days used this year
+    const yearStart = startOfDay(new Date(new Date().getFullYear(), 0, 1));
+    const yearEnd = endOfDay(new Date(new Date().getFullYear(), 11, 31));
+
+    const requestsThisYear = await PTORequest.findAll({
+      where: {
+        userId,
+        leaveType,
+        status: "Approved",
+        startDate: { [Op.between]: [yearStart, yearEnd] },
+      },
+    });
+
+    const totalDaysUsed = requestsThisYear.reduce(
+      (total, request) => total + request.daysRequested,
+      0
+    );
+
+    // Check if the request exceeds the policy limit
+    if (totalDaysUsed + daysRequested > policy.maxDaysPerYear) {
+      return res.status(400).json({
+        message: `Exceeds maximum allowed days for ${leaveType}. You have ${
+          policy.maxDaysPerYear - totalDaysUsed
+        } days remaining.`,
+      });
+    }
+
     // Create the PTO request
     const ptoRequest = await PTORequest.create({
       userId,
       startDate: parsedStartDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
       endDate: parsedEndDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
       leaveType,
+      daysRequested, // Include daysRequested in the database
       status: "Pending", // Default status is "Pending"
     });
 
@@ -121,7 +169,6 @@ router.get("/pending", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // Delete a PTO request
 router.delete("/:id", authenticateToken, async (req, res) => {

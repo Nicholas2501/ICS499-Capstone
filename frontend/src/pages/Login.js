@@ -7,25 +7,27 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Dynamically load CSS from public folder
+  React.useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "/login.css"; // Path to the CSS file in the public folder
+    document.head.appendChild(link);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Send login request to the backend
       const res = await axios.post("http://localhost:5001/api/auth/login", { email, password });
-
-      // Log the response for debugging
       console.log(res.data);
-
-      // Save the JWT token to localStorage
       localStorage.setItem("token", res.data.token);
-
-      // Redirect based on the user's role
+      
       if (res.data.role === "Employee") {
-        navigate("/employee"); // Redirect to Employee Dashboard
+        navigate("/employee");
       } else if (res.data.role === "Manager") {
-        navigate("/manager"); // Redirect to Manager Dashboard
+        navigate("/manager");
       } else if (res.data.role === "HR") {
-        navigate("/hr"); // Redirect to HR Dashboard
+        navigate("/hr");
       } else {
         console.error("Unknown role:", res.data.role);
       }
@@ -36,29 +38,31 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-
-      {/* Login Form */}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
-
-      
+    <div className="login-page">
+      <div className="header">PTO Tracker System</div>
+      <div className="login-container">
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Login</button>
+        </form>
+        <p>
+          Don't have an account? <Link to="/register">Sign up</Link>
+        </p>
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import PrivateRoute from "./components/PrivateRoute";
+import Reports from "./pages/Reports";
 import "react-datepicker/dist/react-datepicker.css";
 
 const App = () => {
@@ -41,6 +42,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route path="/Reports" element={<Reports/>}/>
       </Routes>
     </Router>
   );

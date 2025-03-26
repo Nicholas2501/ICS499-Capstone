@@ -52,6 +52,7 @@ const HRDashboard = () => {
     }
   };
 
+
   // Function to delete a leave policy
   const handleDelete = async (id) => {
     try {
@@ -81,6 +82,14 @@ const HRDashboard = () => {
         style={{ marginBottom: "1rem" }}
       >
         Logout
+      </button>
+
+      <button onClick={ () => {
+        navigate("/Reports");
+      }}
+      style={{marginBottom: "1rem"}}
+      >
+        Reports
       </button>
 
       {/* Link to Create a New User */}

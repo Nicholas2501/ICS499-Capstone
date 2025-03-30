@@ -5,6 +5,8 @@ const userRoutes = require("./routes/users");
 const ptoRoutes = require("./routes/ptoRequests");
 const authRoutes = require("./routes/auth");
 const leavePolicyRoutes = require("./routes/leavePolicies");
+const reportRoutes = require("./routes/reports");
+
 
 dotenv.config();
 const app = express();
@@ -18,6 +20,7 @@ app.use("/auth", userRoutes);
 app.use("/pto-requests", ptoRoutes);
 app.use("/api/auth", authRoutes); // Mount the auth routes under /api/auth
 app.use("/api/leave-policies", leavePolicyRoutes); // Use the leave policy routes
+app.use("/api/reports", reportRoutes);
 // Start Server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

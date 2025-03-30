@@ -57,6 +57,11 @@ const HRDashboard = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+
+  // Function to delete a leave policy
+>>>>>>> db679fcff95845d35f04f0776c2d35457f6b0d39
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -85,8 +90,26 @@ const HRDashboard = () => {
         Logout
       </button>
 
+<<<<<<< HEAD
       <p className="create-user-link">
         To create a new user, <Link to="/register">click here</Link>.
+=======
+      <button onClick={ () => {
+        navigate("/Reports");
+      }}
+      style={{marginBottom: "1rem"}}
+      >
+        Reports
+      </button>
+
+      {/* Link to Create a New User */}
+      <p style={{ marginTop: "1rem" }}>
+        To create a new user,{" "}
+        <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
+          click here
+        </Link>
+        .
+>>>>>>> db679fcff95845d35f04f0776c2d35457f6b0d39
       </p>
 
       <h3>Create Leave Policy</h3>

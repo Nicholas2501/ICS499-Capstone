@@ -1,0 +1,84 @@
+/* manager.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f3f4f6;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .dashboard-container {
+    max-width: 800px;
+    margin: 100px auto;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2, h3 {
+    text-align: center;
+    color: #333;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #007bff;
+  }
+  
+  .logout-btn {
+    display: block;
+    margin: 0 auto 20px auto;
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover {
+    background-color: #c82333;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .approve-btn,
+  .deny-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    color: white;
+  }
+  
+  .approve-btn {
+    background-color: #28a745;
+  }
+  
+  .approve-btn:hover {
+    background-color: #218838;
+  }
+  
+  .deny-btn {
+    background-color: #ffc107;
+    color: black;
+  }
+  
+  .deny-btn:hover {
+    background-color: #e0a800;
+  }
+  

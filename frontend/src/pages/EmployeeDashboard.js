@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 const EmployeeDashboard = () => {
   const navigate = useNavigate();
 
+  // State for submitting a new PTO request
   const [formData, setFormData] = useState({
     startDate: new Date(),
     endDate: new Date(),
@@ -15,8 +16,14 @@ const EmployeeDashboard = () => {
     daysRequested: 0,
   });
 
+  // State for storing the employee's past PTO requests
   const [ptoRequests, setPtoRequests] = useState([]);
+
+  // State for error messages
   const [errorMessage, setErrorMessage] = useState("");
+
+  // State for user profile (including PTO balance)
+  const [userProfile, setUserProfile] = useState(null);
 
   // Load CSS from public folder
   useEffect(() => {
@@ -26,20 +33,26 @@ const EmployeeDashboard = () => {
     document.head.appendChild(link);
   }, []);
 
-  const handleChange = (name, value) => {
-    if (name === "startDate" || name === "endDate") {
-      const updatedFormData = { ...formData, [name]: value };
-      const daysRequested =
-        name === "endDate" && value
-          ? differenceInCalendarDays(value, updatedFormData.startDate) + 1
-          : formData.daysRequested;
+  // Fetch the user's profile (including PTO balance)
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:5001/users/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        console.log("Backend response:", response.data);
+        setUserProfile(response.data);
+      } catch (error) {
+        console.error(error.response?.data?.message || "An error occurred");
+      }
+    };
 
-      setFormData({ ...updatedFormData, daysRequested });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
+    fetchUserProfile();
+  }, []);
 
+  // Fetch the employee's past PTO requests
   useEffect(() => {
     const fetchMyPtoRequests = async () => {
       try {
@@ -56,6 +69,24 @@ const EmployeeDashboard = () => {
     fetchMyPtoRequests();
   }, []);
 
+  
+  
+  // Handle form input changes
+  const handleChange = (name, value) => {
+    if (name === "startDate" || name === "endDate") {
+      const updatedFormData = { ...formData, [name]: value };
+      const daysRequested =
+        name === "endDate" && value
+          ? differenceInCalendarDays(value, updatedFormData.startDate) + 1
+          : formData.daysRequested;
+
+      setFormData({ ...updatedFormData, daysRequested });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  // Submit a new PTO request
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -63,7 +94,10 @@ const EmployeeDashboard = () => {
       const token = localStorage.getItem("token");
       const decodedToken = JSON.parse(atob(token.split(".")[1]));
       const userId = decodedToken.id;
-
+  
+      // Log the daysRequested value for debugging
+      console.log("Days Requested:", formData.daysRequested);
+  
       const response = await axios.post(
         "http://localhost:5001/pto-requests",
         {
@@ -71,13 +105,13 @@ const EmployeeDashboard = () => {
           startDate: formData.startDate.toISOString().split("T")[0],
           endDate: formData.endDate.toISOString().split("T")[0],
           leaveType: formData.leaveType,
-          daysRequested: formData.daysRequested,
+          daysRequested: formData.daysRequested, // Ensure this is included
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+  
       alert(response.data.message);
     } catch (error) {
       console.error("Error submitting PTO request:", error.response?.data?.message || error.message);
@@ -85,11 +119,13 @@ const EmployeeDashboard = () => {
     }
   };
 
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
   };
 
+  // Handle deleting a PTO request
   const handleDelete = async (requestId) => {
     try {
       const token = localStorage.getItem("token");
@@ -108,6 +144,18 @@ const EmployeeDashboard = () => {
     <div className="dashboard-container">
       <h2>Employee Dashboard</h2>
       <button onClick={handleLogout} className="logout-btn">Logout</button>
+
+      {/* Display User Profile Information */}
+      {userProfile ? (
+        <div className="user-profile">
+          <p><strong>Name:</strong> {userProfile.name}</p>
+          <p><strong>Email:</strong> {userProfile.email}</p>
+          <p><strong>Role:</strong> {userProfile.role}</p>
+          <p><strong>PTO Balance:</strong> {userProfile.ptoBalance} days</p>
+        </div>
+      ) : (
+        <p>Loading user profile...</p>
+      )}
 
       <h3>Submit a PTO Request</h3>
       <form onSubmit={handleSubmit}>

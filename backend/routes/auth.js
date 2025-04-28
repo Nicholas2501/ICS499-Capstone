@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 const dotenv = require("dotenv");
+const isAuthenticated = require("../middleware/isAuthenticated");
+
 
 dotenv.config();
 
@@ -38,7 +40,7 @@ router.post("/login", async (req, res) => {
 });
 
 // Register
-router.post("/register", async (req, res) => {
+router.post("/register", isAuthenticated, async (req, res) => {
     try {
       const { name, email, password, role } = req.body;
   

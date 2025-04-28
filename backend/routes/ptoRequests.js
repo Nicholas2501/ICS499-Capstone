@@ -26,7 +26,7 @@ router.post("/", authenticateToken, async (req, res) => {
     const { userId, startDate, endDate, leaveType } = req.body;
 
     // Validate input
-    if (!startDate || !endDate || !leaveType) {
+    if (!userId || !startDate || !endDate || !leaveType) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -42,6 +42,20 @@ router.post("/", authenticateToken, async (req, res) => {
 
     // Calculate days requested (inclusive of both start and end dates)
     const daysRequested = differenceInCalendarDays(parsedEndDate, parsedStartDate) + 1;
+
+    // Log the payload for debugging (after `daysRequested` is calculated)
+    console.log("Received PTO request payload:", {
+      userId,
+      startDate,
+      endDate,
+      leaveType,
+      daysRequested,
+    });
+
+    // Validate daysRequested
+    if (isNaN(daysRequested) || daysRequested <= 0) {
+      return res.status(400).json({ message: "Invalid daysRequested value" });
+    }
 
     // Fetch the user's role
     const user = await User.findByPk(userId);
@@ -90,7 +104,7 @@ router.post("/", authenticateToken, async (req, res) => {
       startDate: parsedStartDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
       endDate: parsedEndDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
       leaveType,
-      daysRequested, // Include daysRequested in the database
+      daysRequested, // Save daysRequested to the database
       status: "Pending", // Default status is "Pending"
     });
 
@@ -213,9 +227,39 @@ router.patch("/:id", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "PTO request not found" });
     }
 
-    // Update the request
+    // Fetch the user associated with the request
+    const user = await User.findByPk(request.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update the request status and manager comment
     request.status = status;
     request.managerComment = managerComment || null;
+
+    // Deduct days if approved
+    if (status === "Approved") {
+      // Validate sufficient balance before deducting
+      if (request.leaveType === "Vacation" && user.ptoBalance < request.daysRequested) {
+        return res.status(400).json({ message: "Insufficient PTO balance" });
+      }
+
+      if (request.leaveType === "Sick Leave" && user.sickLeaveBalance < request.daysRequested) {
+        return res.status(400).json({ message: "Insufficient Sick Leave balance" });
+      }
+
+      // Deduct days based on leave type
+      if (request.leaveType === "Vacation") {
+        user.ptoBalance -= request.daysRequested; // Deduct from PTO balance
+      } else if (request.leaveType === "Sick Leave") {
+        user.ptoBalance -= request.daysRequested; // Deduct from sick leave balance
+      }
+
+      // Save the updated user record
+      await user.save();
+    }
+
+    // Save the updated request
     await request.save();
 
     res.json({ message: "PTO request updated successfully", request });

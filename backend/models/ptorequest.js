@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      daysRequested: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      }
     },
     {
       timestamps: true,

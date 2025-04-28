@@ -4,8 +4,32 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 const dotenv = require("dotenv");
+const authenticateToken = require("../middleware/authenticateToken");
 
 dotenv.config();
+
+
+// Example /users/profile route
+// Example /users/profile route
+router.get("/profile", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      ptoBalance: user.ptoBalance,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 // Register a new user
 router.post("/register", async (req, res) => {

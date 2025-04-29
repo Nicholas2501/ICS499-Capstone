@@ -87,12 +87,9 @@ const HRDashboard = () => {
         Logout
       </button>
 
-      <p className="create-user-link">
-      </p>To create a new user, <Link to="/register">click here</Link>.
       <button onClick={ () => {
         navigate("/Reports");
       }}
-      style={{marginBottom: "1rem"}}
       >
         Reports
       </button>
